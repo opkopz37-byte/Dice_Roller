@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎲 주사위 굴리기 - 촐싹이 주사위</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #a0e3ff 0%, #fef0ff 50%, #fff6d9 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+            perspective: 1000px;
+            background: rgba(255, 255, 255, 0.5);
+            padding: 60px 50px;
+            border-radius: 40px;
+            box-shadow: 0 20px 60px rgba(149, 157, 165, 0.3);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+        }
+
+        h1 {
+            color: #6b7cff;
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 8px rgba(107, 124, 255, 0.2);
+            font-weight: 800;
+        }
+
+        .version-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #c4b5fd 0%, #a78bfa 100%);
+            color: white;
+            padding: 10px 25px;
+            border-radius: 20px;
+            font-size: 1.2em;
+            font-weight: 700;
+            margin-bottom: 40px;
+            box-shadow: 0 5px 15px rgba(139, 92, 246, 0.3);
+        }
+
+        .dice-container {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 50px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 1s ease-out;
+        }
+
+        .dice {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+        }
+
+        .face {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, #fff5f8 0%, #ffe8f5 100%);
+            border: 4px solid #ffc4e8;
+            border-radius: 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 80px;
+            font-weight: bold;
+            color: #ff8bc3;
+            box-shadow: 
+                inset 0 0 30px rgba(255, 182, 229, 0.2),
+                0 10px 30px rgba(255, 139, 195, 0.3);
+        }
+
+        /* 주사위 각 면의 3D 위치 설정 */
+        .face-1 { transform: rotateY(0deg) translateZ(100px); }
+        .face-2 { transform: rotateY(90deg) translateZ(100px); }
+        .face-3 { transform: rotateY(180deg) translateZ(100px); }
+        .face-4 { transform: rotateY(-90deg) translateZ(100px); }
+        .face-5 { transform: rotateX(90deg) translateZ(100px); }
+        .face-6 { transform: rotateX(-90deg) translateZ(100px); }
+
+        /* 주사위 눈 표시를 위한 스타일 */
+        .dots {
+            width: 100%;
+            height: 100%;
+            display: grid;
+            padding: 20px;
+            grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+        }
+
+        .dot {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #ff8bc3 0%, #ffb6e5 100%);
+            border-radius: 50%;
+            justify-self: center;
+            align-self: center;
+            box-shadow: 
+                0 4px 10px rgba(255, 139, 195, 0.4),
+                inset 0 2px 4px rgba(255, 255, 255, 0.5);
+        }
+
+        /* 각 숫자별 점 배치 */
+        .face-1 .dot:nth-child(1) { grid-area: 2 / 2; }
+        
+        .face-2 .dot:nth-child(1) { grid-area: 1 / 1; }
+        .face-2 .dot:nth-child(2) { grid-area: 3 / 3; }
+        
+        .face-3 .dot:nth-child(1) { grid-area: 1 / 1; }
+        .face-3 .dot:nth-child(2) { grid-area: 2 / 2; }
+        .face-3 .dot:nth-child(3) { grid-area: 3 / 3; }
+        
+        .face-4 .dot:nth-child(1) { grid-area: 1 / 1; }
+        .face-4 .dot:nth-child(2) { grid-area: 1 / 3; }
+        .face-4 .dot:nth-child(3) { grid-area: 3 / 1; }
+        .face-4 .dot:nth-child(4) { grid-area: 3 / 3; }
+        
+        .face-5 .dot:nth-child(1) { grid-area: 1 / 1; }
+        .face-5 .dot:nth-child(2) { grid-area: 1 / 3; }
+        .face-5 .dot:nth-child(3) { grid-area: 2 / 2; }
+        .face-5 .dot:nth-child(4) { grid-area: 3 / 1; }
+        .face-5 .dot:nth-child(5) { grid-area: 3 / 3; }
+        
+        .face-6 .dot:nth-child(1) { grid-area: 1 / 1; }
+        .face-6 .dot:nth-child(2) { grid-area: 1 / 3; }
+        .face-6 .dot:nth-child(3) { grid-area: 2 / 1; }
+        .face-6 .dot:nth-child(4) { grid-area: 2 / 3; }
+        .face-6 .dot:nth-child(5) { grid-area: 3 / 1; }
+        .face-6 .dot:nth-child(6) { grid-area: 3 / 3; }
+
+        /* 주사위 굴리기 애니메이션 */
+        .dice-container.rolling {
+            animation: roll 1s ease-out;
+        }
+
+        @keyframes roll {
+            0% { transform: rotateX(0deg) rotateY(0deg); }
+            100% { transform: rotateX(720deg) rotateY(720deg); }
+        }
+
+        /* 버튼 스타일 */
+        .roll-button {
+            background: linear-gradient(135deg, #ffd6f0 0%, #c4b5fd 100%);
+            color: #8b5cf6;
+            border: none;
+            padding: 20px 60px;
+            font-size: 24px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 
+                0 10px 30px rgba(196, 181, 253, 0.4),
+                inset 0 2px 8px rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .roll-button:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 
+                0 15px 40px rgba(196, 181, 253, 0.5),
+                inset 0 2px 8px rgba(255, 255, 255, 0.6);
+            background: linear-gradient(135deg, #ffe0f7 0%, #d4c5fd 100%);
+        }
+
+        .roll-button:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+
+        .roll-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            color: #8b5cf6;
+            font-size: 2em;
+            margin-top: 30px;
+            min-height: 40px;
+            text-shadow: 2px 2px 8px rgba(139, 92, 246, 0.2);
+            font-weight: 700;
+        }
+
+        .back-button {
+            margin-top: 40px;
+            background: rgba(255, 255, 255, 0.7);
+            color: #8b5cf6;
+            border: 2px solid #c4b5fd;
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.9);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(196, 181, 253, 0.3);
+        }
+
+        .back-button:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎲 주사위 굴리기 🎲</h1>
+        <div class="version-badge">🌸 촐싹이 주사위</div>
+        
+        <div class="dice-container" id="diceContainer">
+            <div class="dice" id="dice">
+                <div class="face face-1">
+                    <div class="dots">
+                        <div class="dot"></div>
+                    </div>
+                </div>
+                <div class="face face-2">
+                    <div class="dots">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                </div>
+                <div class="face face-3">
+                    <div class="dots">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                </div>
+                <div class="face face-4">
+                    <div class="dots">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                </div>
+                <div class="face face-5">
+                    <div class="dots">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                </div>
+                <div class="face face-6">
+                    <div class="dots">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="roll-button" id="rollButton" onclick="rollDice()">
+            주사위 굴리기
+        </button>
+
+        <div class="result" id="result"></div>
+
+        <button class="back-button" onclick="goBack()">
+            ← 버전 선택으로 돌아가기
+        </button>
+    </div>
+
+    <script>
+        // ⭐⭐⭐ 촐싹이 주사위 사운드 설정 ⭐⭐⭐
+        // 주사위 굴리는 소리
+        const diceSound = new Audio('dice-roll-excite.MP3');  // 👈 촐싹이 주사위 소리
+
+        // 주사위 굴리기 함수
+        function rollDice() {
+            const dice = document.getElementById('dice');
+            const diceContainer = document.getElementById('diceContainer');
+            const button = document.getElementById('rollButton');
+            const result = document.getElementById('result');
+
+            // 버튼 비활성화 (굴리는 동안 중복 클릭 방지)
+            button.disabled = true;
+            result.textContent = '';
+
+            // 주사위 굴리는 소리 재생
+            playRollSound();
+
+            // 애니메이션 클래스 추가
+            diceContainer.classList.add('rolling');
+
+            // 랜덤 숫자 생성 (1~6)
+            const randomNumber = Math.floor(Math.random() * 6) + 1;
+
+            // 1초 후 애니메이션 종료 및 결과 표시
+            setTimeout(() => {
+                // 애니메이션 클래스 제거
+                diceContainer.classList.remove('rolling');
+
+                // 주사위 면 회전 설정
+                showDiceFace(randomNumber);
+
+                // 결과 표시
+                result.textContent = `결과: ${randomNumber}`;
+
+                // 숫자 음성으로 말하기
+                speakNumber(randomNumber);
+
+                // 버튼 다시 활성화
+                button.disabled = false;
+            }, 1000);
+        }
+
+        // 주사위 면 표시 함수
+        function showDiceFace(number) {
+            const dice = document.getElementById('dice');
+            
+            // ✅ 각 숫자에 맞는 정확한 회전 각도 설정
+            const rotations = {
+                1: 'rotateX(0deg) rotateY(0deg)',       // face-1 (앞면)
+                2: 'rotateX(0deg) rotateY(-90deg)',     // face-2 (오른쪽 → 앞)
+                3: 'rotateX(0deg) rotateY(180deg)',     // face-3 (뒷면 → 앞)
+                4: 'rotateX(0deg) rotateY(90deg)',      // face-4 (왼쪽 → 앞)
+                5: 'rotateX(-90deg) rotateY(0deg)',     // face-5 (위 → 앞)
+                6: 'rotateX(90deg) rotateY(0deg)'       // face-6 (아래 → 앞)
+            };
+
+            dice.style.transform = rotations[number];
+        }
+
+        // 주사위 굴리는 소리 재생
+        function playRollSound() {
+            // 소리를 처음부터 다시 재생
+            diceSound.currentTime = 0;
+            diceSound.play().catch(function(error) {
+                console.log('소리 재생 실패:', error);
+            });
+        }
+
+        // 숫자 음성으로 말하기
+        function speakNumber(number) {
+            // ⭐⭐⭐ 촐싹이 주사위 음성 파일 (excite_1.mp3 ~ excite_6.mp3) ⭐⭐⭐
+            const voiceFiles = {
+                1: 'excite_1.mp3',  // 👈 1번 음성 파일
+                2: 'excite_2.mp3',  // 👈 2번 음성 파일
+                3: 'excite_3.mp3',  // 👈 3번 음성 파일
+                4: 'excite_4.mp3',  // 👈 4번 음성 파일
+                5: 'excite_5.mp3',  // 👈 5번 음성 파일
+                6: 'excite_6.mp3'   // 👈 6번 음성 파일
+            };
+
+            const voice = new Audio(voiceFiles[number]);
+            
+            // 약간의 딜레이 후 음성 재생 (주사위 소리와 겹치지 않게)
+            setTimeout(function() {
+                voice.play().catch(function(error) {
+                    console.log('음성 재생 실패:', error);
+                });
+            }, 600);
+        }
+
+        // 페이지 로드 시 주사위 초기 위치 설정
+        window.onload = function() {
+            showDiceFace(1);
+        };
+
+        // 메인 페이지로 돌아가기
+        function goBack() {
+            // 브라우저 뒤로가기 기능 사용 (더 안전함)
+            window.history.back();
+        }
+    </script>
+</body>
+</html>
